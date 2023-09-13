@@ -1,2 +1,2 @@
 # PRBSV
-PRBSV: Toward Parking Reservation Blockchain-Enabled Framework and Parking Space View Construction Method. A paper submitted to IEEE TITS.
+PRPSV: A Real-Time and Efficient Parking Reservation Framework Based on Parking Space View. A paper submitted to IEEE TITS.
