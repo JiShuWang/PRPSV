@@ -42,7 +42,7 @@ def Split():  # Step 1: Processing the string from original object classificatio
         print("Write Finished.")
 
 
-def PSVUpdate(gamma):  # Step 2: Finishing the PSV update from the processed dataset, gamma is γ and delta is δ in this paper
+def PSVUpdate(gamma):  # Step 2: Finishing the PSV update from the processed dataset, gamma is γ in this paper
     data = []
     datapath = "Data/"
     datafile = "Split_VGG.csv"
