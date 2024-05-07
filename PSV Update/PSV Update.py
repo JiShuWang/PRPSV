@@ -5,7 +5,7 @@ DataField = ["filepath", "weather", "date", "cameraid", "time", "parkingspaceid"
 
 def Split():  # Step 1: Processing the string from original object classification result dataset
     data = []
-    datapath = "../../Data/PSV Update/"
+    datapath = "Data/"
     datafile = "EfficientNet.csv"
     with open(datapath + datafile, "r+", newline='') as csvfile:  # 1. read data
         data = list(csv.reader(csvfile))[1:]
