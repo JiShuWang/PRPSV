@@ -1,0 +1,204 @@
+import csv
+import random
+
+from geopy.distance import geodesic
+
+
+def Processingparkinglot():
+    with open("../Data/Parking Efficiency/ParkingLot_Birmingham.csv", "r", encoding="utf-8") as csvreader:
+        data = list(csv.reader(csvreader))[:]
+        print(len(data))
+
+        parkingid = set()
+        parkinglot = []
+
+        parkinglot.append([data[0][0], data[0][1], "longitude", "latitude", data[0][2]])
+        for content in data[1:]:
+            if content[0] not in parkingid:
+                parkingid.add(content[0])
+                lonitude = random.uniform(-1.8304, -1.9504)
+                latitude = random.uniform(52.4262, 52.4462)
+                parkinglot.append([content[0], content[1], lonitude, latitude, int(0 * float(content[1]))])
+        print(len(parkinglot))
+        csvreader.close()
+
+    with open("../Data/Parking Efficiency/ParkingLot_Birmingham_Processed.csv", "w", encoding="utf-8", newline='') as csvwriter:
+        data = csv.writer(csvwriter)
+        for content in parkinglot:
+            data.writerow(content)
+        csvwriter.close()
+
+
+def Generaterequest():
+    parkinglot = []
+    with open("Data/ParkingLot_Birmingham_Processed.csv", "r", encoding="utf-8") as csvreader:
+        data = list(csv.reader(csvreader))[1:]
+        for content in data:
+            parkinglot.append(
+                [content[0], int(content[1]), float(content[2]), float(content[3]), int(content[-1])])
+        csvreader.close()
+
+    minlongitude, maxlongitude, minlatitude, maxlatitude = parkinglot[0][2], parkinglot[0][2], parkinglot[0][3], \
+                                                           parkinglot[0][3]
+
+    for content in parkinglot:  # Calculate Boundary
+        minlongitude = min(content[2], minlongitude)
+        maxlongitude = max(content[2], maxlongitude)
+        minlatitude = min(content[3], minlatitude)
+        maxlatitude = max(content[3], maxlatitude)
+
+    peak = 0
+    parkingrequest = []
+    for hour in range(8, 24):
+        for minute in range(0, 60):
+            if 10 <= hour <= 14 or (hour == 16 and minute >= 30) or (hour == 17 and minute <= 30):
+                peak = 50
+            else:
+                peak = 25
+            for request in range(peak):  # Parking Request
+                targetlongitude = random.uniform(maxlongitude, minlongitude)
+                targetlatitude = random.uniform(minlatitude, maxlatitude)
+                expectedparkinglot = []
+                for content in parkinglot:  # Calculate Distance
+                    distance = geodesic((content[3], content[2]),
+                                        (targetlatitude, targetlongitude)).km
+                    if distance < 1.5:
+                        expectedparkinglot.append([content[0], distance, content[2], content[3]])
+                expectedparkinglot.sort(key=lambda x: x[1])
+
+                nowlongitude = expectedparkinglot[0][2]
+                nowlatitude = expectedparkinglot[0][3]
+
+                parkingrequest.append(
+                    [(2 - len(str(hour))) * '0' + str(hour), (2 - len(str(minute))) * '0' + str(minute), nowlongitude,
+                     nowlatitude, targetlongitude, targetlatitude, [i[0] for i in expectedparkinglot]])
+
+    with open("Data/ParkingRequest.csv", 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Hour", "Minute", "NowLongitude", "NowLatitude", "TarLongitude", "TarLatitude", "ExpectedParkinglot"])
+        for content in parkingrequest:
+            writer.writerow(content)
+        csvfile.close()
+
+
+def Deduplication():
+    parkinglot = {}
+    with open("Data/ParkingLot_Beijing.csv", "r", encoding="utf-8") as csvreader:
+        data = list(csv.reader(csvreader))[1:]
+        for content in data:
+            capacity, longitude, latitude = content[0], content[1], content[2]
+            if (longitude, latitude) not in parkinglot:
+                parkinglot.setdefault((longitude, latitude), capacity)
+            else:
+                if capacity > parkinglot[(longitude, latitude)]:
+                    parkinglot[(longitude, latitude)] = capacity
+        csvreader.close()
+
+    avglongitude, avglatitude = 0, 0
+    for key in parkinglot:
+        longitude, latitude = key[0], key[1]
+        avglongitude += float(longitude)
+        avglatitude += float(latitude)
+    avglongitude /= len(parkinglot)
+    avglatitude /= len(parkinglot)
+
+    partparkinglot = []
+    i = 1
+    for key in parkinglot:
+        longitude, latitude = key[0], key[1]
+        if abs(avglongitude - float(longitude)) <= 0.02 and abs(avglatitude - float(latitude)) <= 0.02:
+            partparkinglot.append([i, int(parkinglot[(longitude, latitude)]), float(longitude[:9]), float(latitude[:8])])
+            i += 1
+
+    with open("Data/ParkingLot_Beijing_Processed.csv", "w", encoding="utf-8",
+              newline='') as csvwriter:
+        data = csv.writer(csvwriter)
+        data.writerow(["ID", "Capacity", "Longitude", "Latitude"])
+        for content in partparkinglot:
+            data.writerow(content)
+        csvwriter.close()
+
+
+def GenerateParkingSpace():
+    with open("Data/ParkingLot_Birmingham_Processed.csv", "r", encoding="utf-8") as csvreader:
+        partparkinglot = list(csv.reader(csvreader))[1:]
+        csvreader.close()
+
+    parkingspace = []
+    count = 0
+    for content in partparkinglot:
+        parkinglotid, capacity, longitude, latitude = content[0], int(content[1]), float(content[2]), float(content[3])
+
+    #     for top in range(capacity // 2):
+    #         longitude = (longitude * 100000 - 1) / 100000
+    #         latitude = (latitude * 100000 - 1) / 100000
+    #         count += 1
+    #         parkingspace.append([parkinglotid, count, round(longitude, 5), round(latitude, 5)])
+    #     parkinglotid, longitude, latitude = content[0], float(content[2]), float(content[3])
+    #     for bottom in range(capacity // 2, capacity):
+    #         longitude = (longitude * 100000 + 1) / 100000
+    #         latitude = (latitude * 100000 + 1) / 100000
+    #         count += 1
+    #         parkingspace.append([parkinglotid, count, round(longitude, 5), round(latitude, 5)])
+    # with open("Data/ParkingSpace_Birmingham_Processed.csv", "w", encoding="utf-8",
+    #           newline='') as csvwriter:
+    #     data = csv.writer(csvwriter)
+    #     data.writerow(["PLID", "PSID", "Longitude", "Latitude"])
+    #     for content in parkingspace:
+    #         data.writerow(content)
+    #     csvwriter.close()
+
+
+def GenerateRandomRequest():
+    with open("Data/ParkingLot_Birmingham_Processed.csv", "r", encoding="utf-8") as csvreader:
+        partparkinglot = list(csv.reader(csvreader))[1:]
+        csvreader.close()
+    minlongitude = min([float(i[2]) for i in partparkinglot])
+    minlatitude = min([float(i[3]) for i in partparkinglot])
+    maxlongitude = max([float(i[2]) for i in partparkinglot])
+    maxlatitude = max([float(i[3]) for i in partparkinglot])
+
+    parkingrequest = []
+    peak = 0
+    for hour in range(9, 21):
+        for minute in range(0, 60):
+            if 11 <= hour <= 13 or 17 <= hour <= 20:
+                peak = 100
+            else:
+                peak = 50
+            count = 0
+            while count < peak:
+                targetlongitude = round(random.uniform(maxlongitude, minlongitude), 5)
+                targetlatitude = round(random.uniform(minlatitude, maxlatitude), 5)
+                expectedparkinglot = []
+                flag = False
+                for content in partparkinglot:
+                    distance = geodesic((content[3], content[2]), (targetlatitude, targetlongitude)).km
+                    if distance <= 1:
+                        flag = True
+                        expectedparkinglot.append([content[0], distance, content[2], content[3]])
+                if flag:
+                    count += 1
+                    expectedparkinglot.sort(key=lambda x: x[1])
+                    nowlongitude = expectedparkinglot[0][2]
+                    nowlatitude = expectedparkinglot[0][3]
+                    nowplid = expectedparkinglot[0][0]
+                    parkingrequest.append(
+                        [(2 - len(str(hour))) * '0' + str(hour), (2 - len(str(minute))) * '0' + str(minute), nowplid, nowlongitude,
+                         nowlatitude, targetlongitude, targetlatitude, [i[0] for i in expectedparkinglot]])
+        print(hour)
+    with open("Data/ParkingRequest_Birmingham.csv", "w", encoding="utf-8",
+              newline='') as csvwriter:
+        data = csv.writer(csvwriter)
+        data.writerow(["Hour", "Minute", "NowPLID", "NowLongitude", "NowLatitude", "TargetLongitude", "TargetLatitude", "ExpectedParkinglot"])
+        for content in parkingrequest:
+            data.writerow(content)
+        csvwriter.close()
+
+
+if __name__ == '__main__':
+    # Processingparkinglot()
+    # Generaterequest()
+    # Deduplication()
+    GenerateParkingSpace()
+    # GenerateRandomRequest()
