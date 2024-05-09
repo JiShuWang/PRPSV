@@ -1,4 +1,8 @@
 In this part, we will detail the code and main idea of two proposed parking algorithms (non-PSV and PSV).
+
+## Preprocessing
+Before running the parking algorithms, we first preprocess the dataset and generate many parking requests.
+
 ## Cruise Parking
 
 ## Reservation Parking
