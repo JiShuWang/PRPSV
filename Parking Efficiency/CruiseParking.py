@@ -113,7 +113,7 @@ def PSVCruiseParking(dataset, duration, strategy, misjudgmentrate1, misjudgmentr
                     MisjudgementFlag.setdefault(id, False)
                     OptimalPS.setdefault(id, [])
                 if cpo < capacity:  # can be parking
-                    startdistance, currentdistance, targetdistance, nowpsid, targetpsid = 99999, 99999, 99999, '0', '0'  # 停车位和起点的距离，停车位和当前位置的距离，停车位和目的地的距离
+                    startdistance, currentdistance, targetdistance, nowpsid, targetpsid = 99999, 99999, 99999, '0', '0'  # Distance between parking space and starting point, distance between parking space and current location, distance between parking space and destination
                     optimalps = []  # The optimal parking spaces, location: [psid, longitude, latitude, distance]
                     for ps in ParkingLot[eplid][nowtime]:
                         if ps != "occupied":
